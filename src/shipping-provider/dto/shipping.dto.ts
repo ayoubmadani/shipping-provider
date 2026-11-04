@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsObject, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsObject, IsOptional, IsString, IsUUID } from 'class-validator';
 import { ShippingOrderInput } from '../interfaces/shipping-provider.interface';
 
 export class SetShippingProviderDto {
@@ -27,6 +27,11 @@ export class UpdateShippingProviderDto {
 export class CreateShippingOrderDto {
   @IsObject()
   order: ShippingOrderInput;
+
+  // حساب توصيل محدد من حسابات التاجر — بدونه الحساب الافتراضي
+  @IsOptional()
+  @IsUUID()
+  accountId?: string;
 }
 
 export class GetRatesDto {

@@ -100,10 +100,20 @@ export class ShippingProviderService {
 
   // ─── جلب المزود للعمليات ───
 
-  private async getProviderForUser(storeId: string, userId: string): Promise<ShippingProviderContract> {
+  // accountId: حساب محدد (يجب أن يملكه نفس المستخدم) — بدونه الحساب الافتراضي للمتجر
+  private async getProviderForUser(storeId: string, userId: string, accountId?: string): Promise<ShippingProviderContract> {
+    if (accountId) {
+      const chosen = await this.settingsRepo.findOne({ where: { id: accountId, userId } });
+      if (!chosen) throw new NotFoundException('حساب التوصيل المحدد غير موجود.');
+      return createProvider(chosen.providerName, chosen.getParsedCredentials());
+    }
+    // الحسابات تُحفظ للمستخدم بلا storeId (createAccount) — البحث بـ storeId وحده لا يجد شيئاً.
+    // نفضّل حساب هذا المتجر إن وُجد، ثم الحساب الافتراضي للمستخدم، ثم أي حساب له
     const account =
       (await this.settingsRepo.findOne({ where: { storeId, userId, isDefault: true } })) ??
-      (await this.settingsRepo.findOne({ where: { storeId, userId } }));
+      (await this.settingsRepo.findOne({ where: { storeId, userId } })) ??
+      (await this.settingsRepo.findOne({ where: { userId, isDefault: true } })) ??
+      (await this.settingsRepo.findOne({ where: { userId }, order: { createdAt: 'ASC' } }));
 
     if (!account) {
       throw new NotFoundException('لم يتم إعداد مزود شحن لهذا المستخدم في هذا المتجر.');
@@ -129,18 +139,18 @@ export class ShippingProviderService {
     return provider.getCreateOrderValidationRules();
   }
 
-  async createOrder(storeId: string, userId: string, order: ShippingOrderInput) {
-    const provider = await this.getProviderForUser(storeId, userId);
+  async createOrder(storeId: string, userId: string, order: ShippingOrderInput, accountId?: string) {
+    const provider = await this.getProviderForUser(storeId, userId, accountId);
     return provider.createOrderFromOrder(order);
   }
 
-  async getOrder(storeId: string, userId: string, trackingId: string) {
-    const provider = await this.getProviderForUser(storeId, userId);
+  async getOrder(storeId: string, userId: string, trackingId: string, accountId?: string) {
+    const provider = await this.getProviderForUser(storeId, userId, accountId);
     return provider.getOrder(trackingId);
   }
 
-  async getOrderLabel(storeId: string, userId: string, orderId: string) {
-    const provider = await this.getProviderForUser(storeId, userId);
+  async getOrderLabel(storeId: string, userId: string, orderId: string, accountId?: string) {
+    const provider = await this.getProviderForUser(storeId, userId, accountId);
     return provider.orderLabel(orderId);
   }
 }

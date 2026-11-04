@@ -34,6 +34,8 @@ export interface ShippingOrderInput {
   customerCommune: { name: string; ar_name: string };
   totalPrice: number | string;
   items: { quantity: number; product?: { name: string } }[];
+  /** ولاية المتجر (اسمها بالفرنسية، من إعدادات المتجر) — ولاية الإرسال لياليدين؛ بدونها «Alger» */
+  fromWilayaName?: string | null;
 }
 
 export interface ShippingProviderContract {

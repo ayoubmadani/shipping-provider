@@ -12,6 +12,7 @@ import {
   HttpShippingException,
   TrackingIdNotFoundException,
 } from '../exceptions/shipping-exception.filter';
+import { nationalPhone, productList } from './order-helpers';
 
 const PROCOLIS_BASE = 'https://procolis.com/api_v1';
 
@@ -87,11 +88,6 @@ export abstract class ProcolisProviderIntegration implements ShippingProviderCon
   async createOrder(orderData: Record<string, unknown>): Promise<Record<string, unknown>> {
     const body = { Colis: [orderData] };
 
-    // 👇 مؤقتاً
-    console.log('[Procolis] token:', this.token);
-    console.log('[Procolis] key:', this.key);
-    console.log('[Procolis] payload:', JSON.stringify(body, null, 2));
-
     const res = await fetch(`${PROCOLIS_BASE}/add_colis`, {
       method: 'POST',
       headers: this.authHeaders,
@@ -99,7 +95,6 @@ export abstract class ProcolisProviderIntegration implements ShippingProviderCon
     });
 
     const json = await res.json();
-    console.log('[Procolis] response:', JSON.stringify(json));
 
     if (json.Retour !== undefined) {
       throw new CreateOrderException(`Provider rejected request: ${json.Retour}`);
@@ -130,14 +125,14 @@ export abstract class ProcolisProviderIntegration implements ShippingProviderCon
       TypeColis: '0',
       Confrimee: '0',
       Client: order.customerName,
-      MobileA: order.customerPhone,
+      MobileA: nationalPhone(order.customerPhone),
       MobileB: '',
       Adresse: `${order.customerWilaya.ar_name} ${order.customerCommune.ar_name}`,
       IDWilaya: String(order.customerWilayaId),
       Commune: order.customerCommune.ar_name,
       Total: order.totalPrice,
       Note: '',
-      TProduit: 'Article1',
+      TProduit: productList(order),
       id_Externe: order.id,
       Source: '',
     });

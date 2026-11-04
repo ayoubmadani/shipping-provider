@@ -12,6 +12,20 @@ import {
   HttpShippingException,
   TrackingIdNotFoundException,
 } from '../exceptions/shipping-exception.filter';
+import { nationalPhone, productList, totalQuantity } from './order-helpers';
+
+// حالة Ecotrack (slug مثل «livre_non_encaisse») ← نص موحّد يفهمه تزامن الحالة في الـ API
+// (مسلَّم / مرتجع فقط؛ الباقي يبقى «قيد الشحن» ويُعرض نصه الخام)
+const ECOTRACK_DELIVERED = ['livred', 'livre_non_encaisse', 'encaisse_non_paye', 'paiements_prets', 'paye_et_archive', 'encaissed', 'payed'];
+const ECOTRACK_RETURNED = ['retour_recu', 'retour_archive', 'retours_recu', 'retours_en_stock', 'retours_archive', 'return_received'];
+
+export function ecotrackParcelWithStatus(parcel: Record<string, unknown>): Record<string, unknown> {
+  const raw = String(parcel.status ?? parcel.statut ?? parcel.last_status ?? '').trim();
+  const slug = raw.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[\s-]+/g, '_');
+  const unified = ECOTRACK_DELIVERED.includes(slug) ? 'Livré' : ECOTRACK_RETURNED.includes(slug) ? 'Retourné au vendeur' : raw;
+  // الـ API يقرأ last_status أولاً
+  return { ...parcel, last_status: unified, ecotrack_status: raw };
+}
 
 export abstract class EcotrackProviderIntegration implements ShippingProviderContract {
   protected readonly token: string;
@@ -111,29 +125,34 @@ export abstract class EcotrackProviderIntegration implements ShippingProviderCon
   async createOrderFromOrder(order: ShippingOrderInput): Promise<Record<string, unknown>> {
     const isStopdesk = order.typeShip !== 'home';
 
-    // حساب إجمالي الكمية من العناصر
-    const totalQuantity = order.items?.reduce((sum, item) => sum + item.quantity, 0) || 1;
-
-    // جلب أسماء المنتجات (اختياري، لكنه أفضل من 'Article1')
-    const productsNames = order.items?.map(item => item.product?.name).join(' + ') || 'Produit';
-
     return this.createOrder({
       reference: order.id,
       nom_client: order.customerName,
-      telephone: order.customerPhone,
+      telephone: nationalPhone(order.customerPhone),
       adresse: `${order.customerWilaya.ar_name} ${order.customerCommune.ar_name}`,
       code_wilaya: order.customerWilayaId,
       commune: order.customerCommune.ar_name,
       montant: Number(order.totalPrice),
       type: isStopdesk ? 2 : 1,   // 1=domicile, 2=stopdesk
       stop_desk: isStopdesk ? '1' : '0',
-      produit: productsNames.substring(0, 255), // لضمان عدم تجاوز الحد المسموح
-      quantite: totalQuantity,
+      produit: productList(order),
+      quantite: totalQuantity(order),
     });
   }
 
-  async getOrder(_trackingId: string): Promise<Record<string, unknown>> {
-    throw new FunctionNotSupportedException('getOrder', this.metadata().name);
+  // تتبّع الطرد (كانت غير مدعومة ← طلبات شركات Ecotrack لا تصبح «مسلَّمة» تلقائياً أبداً)
+  // GET api/v1/get/orders?tracking=… يرجع قائمة نختار منها الطرد بنفس رقم التتبع
+  async getOrder(trackingId: string): Promise<Record<string, unknown>> {
+    const url = `${this.apiDomain()}api/v1/get/orders?tracking=${encodeURIComponent(trackingId)}&api_token=${encodeURIComponent(this.token)}`;
+    const res = await fetch(url, { headers: this.authHeaders });
+    if (res.status === 404 || res.status === 422) throw new TrackingIdNotFoundException(trackingId, this.metadata().name);
+    if (!res.ok) throw new HttpShippingException(`${this.metadata().name}: failed to get order ${trackingId} (${res.status})`, res.status);
+
+    const json = await res.json();
+    const list: Record<string, unknown>[] = Array.isArray(json?.data) ? json.data : Array.isArray(json) ? json : [];
+    const parcel = list.find((o) => String(o?.tracking) === String(trackingId));
+    if (!parcel) throw new TrackingIdNotFoundException(trackingId, this.metadata().name);
+    return ecotrackParcelWithStatus(parcel);
   }
 
   async orderLabel(orderId: string): Promise<LabelResult> {

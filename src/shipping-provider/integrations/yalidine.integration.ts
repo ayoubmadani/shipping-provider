@@ -11,6 +11,7 @@ import {
   HttpShippingException,
   TrackingIdNotFoundException,
 } from '../exceptions/shipping-exception.filter';
+import { nationalPhone, productList } from './order-helpers';
 
 export abstract class YalidineProviderIntegration implements ShippingProviderContract {
   protected readonly apiId: string;
@@ -104,14 +105,14 @@ export abstract class YalidineProviderIntegration implements ShippingProviderCon
 
     const payload: Record<string, unknown> = {
       order_id: order.id,
-      from_wilaya_name: 'Alger',  // ← wilaya المتجر، يمكن إضافتها لـ StoreShippingSettings لاحقاً
+      from_wilaya_name: order.fromWilayaName?.trim() || 'Alger', // ولاية المتجر
       firstname: order.customerName,
       familyname: '',
-      contact_phone: order.customerPhone,
+      contact_phone: nationalPhone(order.customerPhone),
       address: `${order.customerWilaya.ar_name} ${order.customerCommune.ar_name}`,
       to_wilaya_name: order.customerWilaya.name,
       to_commune_name: order.customerCommune.name,
-      product_list: 'Article1',
+      product_list: productList(order),
       price: Number(order.totalPrice),
       do_insurance: false,
       declared_value: Number(order.totalPrice),
@@ -119,7 +120,9 @@ export abstract class YalidineProviderIntegration implements ShippingProviderCon
       width: 1,
       height: 1,
       weight: 1,
-      freeshipping: false,
+      // totalPrice يشمل سعر التوصيل الذي دفعه الزبون في المتجر — بدون freeshipping
+      // تضيف ياليدين سعرها فوقه فيدفع الزبون التوصيل مرتين عند الباب
+      freeshipping: true,
       is_stopdesk: isStopdesk,
       has_exchange: false,
     };

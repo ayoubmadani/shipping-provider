@@ -10,6 +10,7 @@ import {
   HttpShippingException,
   NotImplementedException,
 } from '../../exceptions/shipping-exception.filter';
+import { nationalPhone } from '../../integrations/order-helpers';
 
 const BASE = 'https://backend.maystro-delivery.com/api/';
 
@@ -115,7 +116,7 @@ export class MaystroDeliveryProvider implements ShippingProviderContract {
       wilaya: String(order.customerWilayaId),
       commune: String(order.customerCommuneId),
       customer_name: order.customerName,
-      customer_phone: order.customerPhone,
+      customer_phone: nationalPhone(order.customerPhone),
       destination_text: `${order.customerWilaya.ar_name} ${order.customerCommune.ar_name}`,
       product_price: String(Math.round(Number(order.totalPrice))),
       delivery_type: order.typeShip === 'home' ? '0' : '1',

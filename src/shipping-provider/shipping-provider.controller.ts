@@ -102,7 +102,7 @@ export class ShippingProviderController {
     @Body() dto: CreateShippingOrderDto,
     @InternalUserId() userId: string,
   ) {
-    return this.shippingService.createOrder(storeId, userId, dto.order);
+    return this.shippingService.createOrder(storeId, userId, dto.order, dto.accountId);
   }
 
   @Get('orders/:trackingId')
@@ -110,8 +110,9 @@ export class ShippingProviderController {
     @Param('storeId') storeId: string,
     @Param('trackingId') trackingId: string,
     @InternalUserId() userId: string,
+    @Query('accountId') accountId?: string,
   ) {
-    return this.shippingService.getOrder(storeId, userId, trackingId);
+    return this.shippingService.getOrder(storeId, userId, trackingId, accountId);
   }
 
   @Get('orders/:orderId/label')
@@ -119,7 +120,8 @@ export class ShippingProviderController {
     @Param('storeId') storeId: string,
     @Param('orderId') orderId: string,
     @InternalUserId() userId: string,
+    @Query('accountId') accountId?: string,
   ) {
-    return this.shippingService.getOrderLabel(storeId, userId, orderId);
+    return this.shippingService.getOrderLabel(storeId, userId, orderId, accountId);
   }
 }
