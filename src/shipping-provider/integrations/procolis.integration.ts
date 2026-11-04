@@ -118,7 +118,12 @@ export abstract class ProcolisProviderIntegration implements ShippingProviderCon
     return colis;
   }
 
+  /** الشركة تقبل الولايات الجديدة 59..69؟ (ZR Express نعم) — وإلا تُرسل الولاية الأم من الـ58 */
+  protected readonly supports69Wilayas: boolean = false;
+
   async createOrderFromOrder(order: ShippingOrderInput): Promise<Record<string, unknown>> {
+    const w69 = this.supports69Wilayas ? order.customerWilaya69 : null;
+    const wilaya = w69 ? { id: w69.id, ar_name: w69.ar_name } : { id: order.customerWilayaId, ar_name: order.customerWilaya.ar_name };
     return this.createOrder({
       Tracking: '',
       TypeLivraison: order.typeShip === 'home' ? '0' : '1',
@@ -127,8 +132,8 @@ export abstract class ProcolisProviderIntegration implements ShippingProviderCon
       Client: order.customerName,
       MobileA: nationalPhone(order.customerPhone),
       MobileB: '',
-      Adresse: `${order.customerWilaya.ar_name} ${order.customerCommune.ar_name}`,
-      IDWilaya: String(order.customerWilayaId),
+      Adresse: `${wilaya.ar_name} ${order.customerCommune.ar_name}`,
+      IDWilaya: String(wilaya.id),
       Commune: order.customerCommune.ar_name,
       Total: order.totalPrice,
       Note: '',

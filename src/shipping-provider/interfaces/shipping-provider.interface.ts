@@ -31,6 +31,8 @@ export interface ShippingOrderInput {
   customerWilayaId: number;
   customerCommuneId: number;
   customerWilaya: { name: string; ar_name: string };
+  /** الولاية الحقيقية برقمها الرسمي (1..69) لمتجر بتقسيم 69 ولاية — للشركات التي تدعمها (ZR). غيرها يستعمل customerWilayaId (الأم من الـ58) */
+  customerWilaya69?: { id: number; name: string; ar_name: string } | null;
   customerCommune: { name: string; ar_name: string };
   totalPrice: number | string;
   items: { quantity: number; product?: { name: string } }[];

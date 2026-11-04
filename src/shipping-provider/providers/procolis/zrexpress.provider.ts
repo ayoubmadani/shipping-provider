@@ -2,6 +2,9 @@ import { ProcolisProviderIntegration } from '../../integrations/procolis.integra
 import { ProviderMetadata } from '../../interfaces/shipping-provider.interface';
 
 export class ZRExpressProvider extends ProcolisProviderIntegration {
+  // ZR Express تدعم تقسيم 69 ولاية: الولايات الجديدة (59..69) تُرسل برقمها
+  protected readonly supports69Wilayas = true;
+
   metadata(): ProviderMetadata {
     return {
       name: 'ZRExpress',
