@@ -30,8 +30,8 @@ import {
 // Yalidine platform
 import { YalidineProvider, YalitecProvider } from './yalidine/yalidine.providers';
 
-// Procolis platform
-import { ZRExpressProvider } from './procolis/zrexpress.provider';
+// ZR Express (api.zrexpress.app)
+import { ZRExpressProvider } from './zrexpress/zrexpress.provider';
 
 // Independents
 import { MaystroDeliveryProvider } from './maystro/maystro-delivery.provider';
@@ -73,7 +73,7 @@ export const PROVIDER_REGISTRY: Record<string, ProviderConstructor> = {
   Yalidine: YalidineProvider,
   Yalitec: YalitecProvider,
 
-  // Procolis platform
+  // ZR Express (api.zrexpress.app)
   ZRExpress: ZRExpressProvider,
 
   // Independent
@@ -126,8 +126,8 @@ export const PROVIDERS_METADATA = [
   // ── Yalidine platform ──────────────────────────────────────────────────────
   { key: 'Yalidine',         name: 'Yalidine',         title: 'Yalidine',             logo: 'https://yalidine.com/assets/img/yalidine-logo.png',               description: 'Yalidine — société de livraison rapide et sécurisée',  website: 'https://yalidine.com/',                 api_docs: 'https://yalidine.app/app/dev/docs/api/index.php', tracking_url: 'https://yalidine.com/suivre-un-colis/' },
 
-  // ── Procolis platform ──────────────────────────────────────────────────────
-  { key: 'ZRExpress',        name: 'ZRExpress',        title: 'ZR Express',           logo: 'https://play-lh.googleusercontent.com/_JY-6AlfdbrqaZMEosTsMUCnezFQACvr5iGP19U814Hlw0vIhta7GZSBdQcb9JLHBn2MpHdWzCewLeWb6oJ15Q',                description: 'ZR Express — société de livraison rapide et sécurisée', website: 'https://zrexpress.com',                api_docs: 'https://zrexpress.com/ZREXPRESS_WEB/FR/Developpement.awp', tracking_url: null },
+  // ── ZR Express (api.zrexpress.app) ──────────────────────────────────────────────────────
+  { key: 'ZRExpress',        name: 'ZRExpress',        title: 'ZR Express',           logo: 'https://play-lh.googleusercontent.com/_JY-6AlfdbrqaZMEosTsMUCnezFQACvr5iGP19U814Hlw0vIhta7GZSBdQcb9JLHBn2MpHdWzCewLeWb6oJ15Q',                description: 'ZR Express — société de livraison rapide et sécurisée', website: 'https://zrexpress.app',                api_docs: 'https://docs.zrexpress.app', tracking_url: null },
 
   // ── Independent ────────────────────────────────────────────────────────────
   { key: 'MaystroDelivery',  name: 'MaystroDelivery',  title: 'Maystro Delivery',     logo: 'https://media.licdn.com/dms/image/v2/C560BAQHYfllwi1IFdA/company-logo_200_200/company-logo_200_200/0/1643802585466/maystro_delivery_logo?e=2147483647&v=beta&t=wyoEZkWgj_XG3Cloo-4g4rWx5fNl68IGj_FcbHU2y_U',       description: 'Maystro Delivery — livraison rapide et sécurisée',     website: 'https://maystro-delivery.com/',         api_docs: 'https://maystro.gitbook.io/maystro-delivery-documentation', tracking_url: 'https://maystro-delivery.com/trackingSD.html' },

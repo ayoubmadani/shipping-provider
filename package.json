@@ -11,7 +11,8 @@
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:prod": "node dist/main",
-    "start:debug": "nest start --debug --watch"
+    "start:debug": "nest start --debug --watch",
+    "test": "TS_NODE_TRANSPILE_ONLY=1 node -r ts-node/register --test \"src/**/*.spec.ts\""
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
