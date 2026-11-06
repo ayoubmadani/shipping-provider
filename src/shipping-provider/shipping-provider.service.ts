@@ -6,6 +6,7 @@ import { StoreShippingSettings } from './entities/store-shipping-settings.entity
 import { createProvider, getAllProvidersMetadata } from './providers/provider.registry';
 import { ShippingOrderInput, ShippingProviderContract } from './interfaces/shipping-provider.interface';
 import { SetShippingProviderDto, UpdateShippingProviderDto } from './dto/shipping.dto';
+import { collectLabels } from './labels';
 
 @Injectable()
 export class ShippingProviderService {
@@ -161,5 +162,11 @@ export class ShippingProviderService {
   async getOrderLabel(storeId: string, userId: string, orderId: string, accountId?: string) {
     const provider = await this.getProviderForUser(storeId, userId, accountId);
     return provider.orderLabel(orderId);
+  }
+
+  // ملصقات عدة طرود من نفس الحساب ← أقل عدد من الملفات (انظر labels.ts)
+  async getLabels(storeId: string, userId: string, trackingIds: string[], accountId?: string) {
+    const provider = await this.getProviderForUser(storeId, userId, accountId);
+    return collectLabels(provider, [...new Set(trackingIds)]);
   }
 }

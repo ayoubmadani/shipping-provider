@@ -9,7 +9,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { SetShippingProviderDto, UpdateShippingProviderDto, CreateShippingOrderDto } from './dto/shipping.dto';
+import { SetShippingProviderDto, UpdateShippingProviderDto, CreateShippingOrderDto, LabelsDto } from './dto/shipping.dto';
 import { ShippingProviderService } from './shipping-provider.service';
 import { InternalAuthGuard } from './guards/internal-auth.guard';
 import { InternalUserId } from './decorators/internal-user-id.decorator';
@@ -128,5 +128,10 @@ export class ShippingProviderController {
     @Query('accountId') accountId?: string,
   ) {
     return this.shippingService.getOrderLabel(storeId, userId, orderId, accountId);
+  }
+
+  @Post('labels')
+  getLabels(@Param('storeId') storeId: string, @Body() dto: LabelsDto, @InternalUserId() userId: string) {
+    return this.shippingService.getLabels(storeId, userId, dto.trackingIds, dto.accountId);
   }
 }

@@ -183,4 +183,11 @@ export class ZRExpressProvider implements ShippingProviderContract {
     if (status !== 200 || !url) throw new HttpShippingException(`ZRExpress: label unavailable for ${trackingId}`, status);
     return { type: 'url', data: url };
   }
+
+  /** عدة طرود في ملف واحد (حتى 250) */
+  async orderLabels(trackingIds: string[]): Promise<LabelResult & { failed: string[] }> {
+    const { status, data } = await this.call<any>('POST', 'parcels/labels/multiple', { trackingNumbers: trackingIds });
+    if (status !== 200 || !data?.fileUrl) throw new HttpShippingException(`ZRExpress: labels unavailable (${status})`, status);
+    return { type: 'url', data: data.fileUrl, failed: data.failedTrackingNumbers ?? [] };
+  }
 }

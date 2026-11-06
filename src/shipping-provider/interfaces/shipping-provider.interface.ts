@@ -48,5 +48,7 @@ export interface ShippingProviderContract {
   createOrderFromOrder(order: ShippingOrderInput): Promise<Record<string, unknown>>;
   getOrder(trackingId: string): Promise<Record<string, unknown>>;
   orderLabel(orderId: string): Promise<LabelResult>;
+  /** طباعة جماعية في ملف واحد (إن كانت الشركة تدعمها) — failed: أرقام لم يُصنع ملصقها */
+  orderLabels?(trackingIds: string[]): Promise<LabelResult & { failed?: string[] }>;
   metadata(): ProviderMetadata;
 }

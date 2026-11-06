@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsObject, IsOptional, IsString, IsUUID } from 'class-validator';
+import { ArrayMaxSize, ArrayMinSize, IsArray, IsNotEmpty, IsObject, IsOptional, IsString, IsUUID } from 'class-validator';
 import { ShippingOrderInput } from '../interfaces/shipping-provider.interface';
 
 export class SetShippingProviderDto {
@@ -37,4 +37,16 @@ export class CreateShippingOrderDto {
 export class GetRatesDto {
   fromWilayaId?: number;
   toWilayaId?: number;
+}
+
+export class LabelsDto {
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(250)
+  @IsString({ each: true })
+  trackingIds: string[];
+
+  @IsOptional()
+  @IsUUID()
+  accountId?: string;
 }
