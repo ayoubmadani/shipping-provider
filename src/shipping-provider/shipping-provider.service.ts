@@ -19,6 +19,15 @@ export class ShippingProviderService {
     return getAllProvidersMetadata();
   }
 
+  // «Tester» في اللوحة: تجربة المعرّفات بلا حفظ — أي خطأ يعني «غير صالحة»
+  async testNewCredentials(dto: Pick<SetShippingProviderDto, 'providerName' | 'credentials'>): Promise<{ isVerified: boolean }> {
+    try {
+      return { isVerified: (await createProvider(dto.providerName, dto.credentials ?? {}).testCredentials()) === true };
+    } catch {
+      return { isVerified: false };
+    }
+  }
+
   // ─── إدارة الحسابات (مرتبطة بالمستخدم) ───
 
   async getStoreAccounts(userId: string): Promise<StoreShippingSettings[]> {

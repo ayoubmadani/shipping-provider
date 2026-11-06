@@ -32,6 +32,11 @@ export class ShippingProviderController {
     return this.shippingService.getStoreAccounts(userId);
   }
 
+  @Post('credentials/test')
+  testNewCredentials(@Body() dto: SetShippingProviderDto) {
+    return this.shippingService.testNewCredentials(dto);
+  }
+
   @Post('accounts')
   createAccount(
     @Param('storeId') storeId: string,
