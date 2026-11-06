@@ -134,4 +134,14 @@ export class ShippingProviderController {
   getLabels(@Param('storeId') storeId: string, @Body() dto: LabelsDto, @InternalUserId() userId: string) {
     return this.shippingService.getLabels(storeId, userId, dto.trackingIds, dto.accountId);
   }
+
+  @Delete('orders/:trackingId')
+  cancelOrder(
+    @Param('storeId') storeId: string,
+    @Param('trackingId') trackingId: string,
+    @InternalUserId() userId: string,
+    @Query('accountId') accountId?: string,
+  ) {
+    return this.shippingService.cancelOrder(storeId, userId, trackingId, accountId);
+  }
 }

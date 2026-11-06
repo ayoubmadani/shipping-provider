@@ -7,6 +7,7 @@ import { createProvider, getAllProvidersMetadata } from './providers/provider.re
 import { ShippingOrderInput, ShippingProviderContract } from './interfaces/shipping-provider.interface';
 import { SetShippingProviderDto, UpdateShippingProviderDto } from './dto/shipping.dto';
 import { collectLabels } from './labels';
+import { FunctionNotSupportedException } from './exceptions/shipping-exception.filter';
 
 @Injectable()
 export class ShippingProviderService {
@@ -168,5 +169,13 @@ export class ShippingProviderService {
   async getLabels(storeId: string, userId: string, trackingIds: string[], accountId?: string) {
     const provider = await this.getProviderForUser(storeId, userId, accountId);
     return collectLabels(provider, [...new Set(trackingIds)]);
+  }
+
+  // إلغاء الشحن: حذف الطرد عند الشركة (إن كانت تسمح به عبر الـ API)
+  async cancelOrder(storeId: string, userId: string, trackingId: string, accountId?: string) {
+    const provider = await this.getProviderForUser(storeId, userId, accountId);
+    if (!provider.cancelOrder) throw new FunctionNotSupportedException('cancelOrder', provider.metadata().title);
+    await provider.cancelOrder(trackingId);
+    return { cancelled: true };
   }
 }

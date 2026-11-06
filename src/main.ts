@@ -5,6 +5,7 @@ if (!globalThis.crypto) {
 
 import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { ShippingExceptionFilter } from './shipping-provider/exceptions/shipping-exception.filter';
 import { ValidationPipe, ClassSerializerInterceptor } from '@nestjs/common';
 
 async function bootstrap() {
@@ -19,6 +20,7 @@ async function bootstrap() {
   }));
 
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
+  app.useGlobalFilters(new ShippingExceptionFilter());
 
   const port = process.env.PORT || 7001;
   await app.listen(port);

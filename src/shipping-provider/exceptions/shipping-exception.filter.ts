@@ -1,3 +1,5 @@
+import { ArgumentsHost, Catch, ExceptionFilter } from '@nestjs/common';
+
 export class ShippingException extends Error {
   constructor(message: string) {
     super(message);
@@ -52,5 +54,17 @@ export class TrackingIdNotFoundException extends ShippingException {
   constructor(trackingId: string, providerName?: string) {
     const provider = providerName ? ` (${providerName})` : '';
     super(`Tracking ID not found: "${trackingId}"${provider}.`);
+  }
+}
+
+// أخطاء الشركات تصل للـ API برسالتها (كانت تصير 500 «Internal server error» بلا سبب)
+// لا يُعاد status الشركة نفسه (401 منها كان سيبدو للوحة كخروج من الحساب) ← 502 لأعطال الشركة
+@Catch(ShippingException)
+export class ShippingExceptionFilter implements ExceptionFilter {
+  catch(exception: ShippingException, host: ArgumentsHost) {
+    const status = exception instanceof TrackingIdNotFoundException ? 404
+      : exception instanceof HttpShippingException ? 502
+      : 400;
+    host.switchToHttp().getResponse().status(status).json({ statusCode: status, message: exception.message });
   }
 }

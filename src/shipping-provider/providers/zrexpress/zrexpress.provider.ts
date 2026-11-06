@@ -48,7 +48,7 @@ export class ZRExpressProvider implements ShippingProviderContract {
     };
   }
 
-  private async call<T>(method: 'GET' | 'POST', path: string, body?: unknown): Promise<{ status: number; data: T }> {
+  private async call<T>(method: 'GET' | 'POST' | 'DELETE', path: string, body?: unknown): Promise<{ status: number; data: T }> {
     const res = await fetch(`${BASE}/${path}`, {
       method,
       headers: { 'X-Api-Key': this.secretKey, 'X-Tenant': this.tenantId, 'Content-Type': 'application/json' },
@@ -189,5 +189,16 @@ export class ZRExpressProvider implements ShippingProviderContract {
     const { status, data } = await this.call<any>('POST', 'parcels/labels/multiple', { trackingNumbers: trackingIds });
     if (status !== 200 || !data?.fileUrl) throw new HttpShippingException(`ZRExpress: labels unavailable (${status})`, status);
     return { type: 'url', data: data.fileUrl, failed: data.failedTrackingNumbers ?? [] };
+  }
+
+  /** إلغاء الشحن: حذف الطرد (ZR تقبل قبل أن يستلمه الموزّع، وترفض بعده برسالتها) */
+  async cancelOrder(trackingId: string): Promise<void> {
+    const found = await this.call<any>('GET', `parcels/${encodeURIComponent(trackingId)}`);
+    if (found.status === 404) throw new TrackingIdNotFoundException(trackingId, this.metadata().name);
+    if (found.status !== 200 || !found.data?.id) throw new HttpShippingException(`ZRExpress: failed to read parcel (${found.status})`, found.status);
+    const del = await this.call<any>('DELETE', `parcels/${found.data.id}`);
+    if (del.status !== 200 && del.status !== 204) {
+      throw new CreateOrderException(`ZR Express : ${ZRExpressProvider.problem(del.data) || `suppression refusée (${del.status})`}`);
+    }
   }
 }

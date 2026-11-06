@@ -50,5 +50,7 @@ export interface ShippingProviderContract {
   orderLabel(orderId: string): Promise<LabelResult>;
   /** طباعة جماعية في ملف واحد (إن كانت الشركة تدعمها) — failed: أرقام لم يُصنع ملصقها */
   orderLabels?(trackingIds: string[]): Promise<LabelResult & { failed?: string[] }>;
+  /** إلغاء الشحن (حذف الطرد عند الشركة) — غير موجود = الشركة لا تسمح به عبر الـ API */
+  cancelOrder?(trackingId: string): Promise<void>;
   metadata(): ProviderMetadata;
 }
